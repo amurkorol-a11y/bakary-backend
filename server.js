@@ -47,10 +47,24 @@ ${clientLine}${commentText}
 👤 Менеджер: ${MANAGER_USERNAME} (${MANAGER_PHONE})
     `.trim();
 
+    const replyMarkup = order.customer.username
+      ? {
+          inline_keyboard: [
+            [
+              {
+                text: 'Написать клиенту в Telegram',
+                url: `https://t.me/${order.customer.username}`
+              }
+            ]
+          ]
+        }
+      : undefined;
+
     await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       chat_id: CHAT_ID,
       text: message,
-      parse_mode: 'Markdown'
+      parse_mode: 'Markdown',
+      reply_markup: replyMarkup
     });
 
     res.status(200).json({ success: true, message: 'Заказ отправлен менеджеру' });
