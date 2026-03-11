@@ -1,9 +1,11 @@
 {
   "version": 2,
   "builds": [
-    { "src": "server.js", "use": "@vercel/node" }
+    { "src": "server.js", "use": "@vercel/node" },
+    { "src": "api/telegram-webhook.js", "use": "@vercel/node" }
   ],
   "routes": [
+    { "src": "/api/telegram-webhook", "dest": "api/telegram-webhook.js" },
     { "src": "/(.*)", "dest": "server.js" }
   ]
 }
