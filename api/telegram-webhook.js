@@ -8,7 +8,8 @@ if (!TELEGRAM_TOKEN) {
   console.error('❌ Ошибка: CLIENT_BOT_TOKEN не задан в переменных окружения');
 }
 
-module.exports = async (req, res) => {
+module.exports = async (req, res) => {console.log('➡️ Incoming update:', JSON.stringify(req.body)); // логим всё, что пришло
+
   if (req.method !== 'POST') {
     return res.status(405).send('Method Not Allowed');
   }
