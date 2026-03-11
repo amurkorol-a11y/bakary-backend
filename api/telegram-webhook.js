@@ -8,7 +8,8 @@ if (!TELEGRAM_TOKEN) {
   console.error('❌ Ошибка: CLIENT_BOT_TOKEN не задан в переменных окружения');
 }
 
-module.exports = async (req, res) => {console.log('➡️ Incoming update:', JSON.stringify(req.body)); // логим всё, что пришло
+module.exports = async (req, res) => {
+  console.log('➡️ Incoming update:', JSON.stringify(req.body)); // логим всё, что пришло
 
   if (req.method !== 'POST') {
     return res.status(405).send('Method Not Allowed');
@@ -26,14 +27,12 @@ module.exports = async (req, res) => {console.log('➡️ Incoming update:', JSO
           chat_id: chatId,
           text: '🍰 Добро пожаловать в Bakary!\nНажмите кнопку, чтобы открыть каталог десертов:',
           reply_markup: {
-            keyboard: [[
+            inline_keyboard: [[
               {
                 text: '🍰 Перейти в каталог',
                 web_app: { url: WEBAPP_URL }
               }
-            ]],
-            resize_keyboard: true,
-            one_time_keyboard: false
+            ]]
           }
         });
       }
