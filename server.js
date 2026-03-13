@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+const crypto = require('crypto'); // <-- ДОБАВЛЕНО
 require('dotenv').config();
 
 const app = express();
@@ -24,6 +25,33 @@ if (!BOT_TOKEN || !CHAT_ID) {
 if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY) {
     console.warn('⚠️ Не заданы YOOKASSA_SHOP_ID или YOOKASSA_SECRET_KEY — оплата не будет работать');
 }
+
+// ==================== ВРЕМЕННОЕ ХРАНИЛИЩЕ ТОВАРОВ ====================
+// Пока без базы данных храним товары в памяти
+let products = [
+  {
+    id: '1',
+    name: 'Павлова с черникой и лимонным курдом (4 шт)',
+    price: 325,
+    type: 'set4',
+    weight: '4 шт',
+    description: 'Воздушная меренга, сочная черника и освежающий лимонный курд',
+    image: 'https://sun9-46.userapi.com/s/v1/ig2/cK7yuBzfPq-caUeAANAHeb0Y6youpfTBYezQapz1kR-tVgcSaM3AGu_PmALhVwFp6_2ytROOAso-dlG-SQsJ9_l1.jpg?quality=95&as=32x43,48x64,72x96,108x144,160x213,240x320,360x480,480x640,540x720,640x853,720x960,960x1280&from=bu&cs=480x0',
+    flowwowLink: '',
+    active: true
+  },
+  {
+    id: '2',
+    name: 'Мадлен с ароматом персика (350 г)',
+    price: 1000,
+    type: 'weight',
+    weight: '350 г',
+    description: 'Мадлен с ароматом персика, покрытый белой шоколадной глазурью и тонким штрихом съедобного золота',
+    image: 'https://sun9-3.userapi.com/s/v1/ig2/UoLdQhQnfmx1CZe7vzes5KrkrTYYsMBnCcWEpvBXbJfPaTj_SE-MwU2XFdc2hxvzjxH_U7_7HDOlQzNfIhlQ41IJ.jpg?quality=95&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720,1080x1080,1280x1280&from=bu&cs=480x0',
+    flowwowLink: '',
+    active: true
+  }
+];
 
 // ==================== Вспомогательная функция создания платежа ====================
 async function createYooKassaPayment(amount, description, returnUrl) {
@@ -212,6 +240,50 @@ app.post('/api/create-second-payment', async (req, res) => {
         console.error('Ошибка создания доплаты:', error.response?.data || error.message);
         res.status(500).json({ success: false, error: 'Ошибка при создании доплаты' });
     }
+});
+
+// ==================== ЭНДПОИНТЫ ДЛЯ УПРАВЛЕНИЯ ТОВАРАМИ ====================
+
+// GET /api/products - получить все товары
+app.get('/api/products', (req, res) => {
+    res.json(products);
+});
+
+// POST /api/products - создать новый товар
+app.post('/api/products', (req, res) => {
+    const newProduct = {
+        id: crypto.randomBytes(16).toString('hex'),
+        ...req.body,
+        active: req.body.active !== undefined ? req.body.active : true
+    };
+    products.push(newProduct);
+    res.status(201).json(newProduct);
+});
+
+// PUT /api/products/:id - обновить товар
+app.put('/api/products/:id', (req, res) => {
+    const id = req.params.id;
+    const index = products.findIndex(p => p.id === id);
+    
+    if (index === -1) {
+        return res.status(404).json({ error: 'Товар не найден' });
+    }
+    
+    products[index] = { ...products[index], ...req.body, id };
+    res.json(products[index]);
+});
+
+// DELETE /api/products/:id - деактивировать товар
+app.delete('/api/products/:id', (req, res) => {
+    const id = req.params.id;
+    const index = products.findIndex(p => p.id === id);
+    
+    if (index === -1) {
+        return res.status(404).json({ error: 'Товар не найден' });
+    }
+    
+    products[index].active = false;
+    res.json({ success: true });
 });
 
 // ==================== ЭНДПОИНТ 4: Проверка здоровья ====================
